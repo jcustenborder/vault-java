@@ -17,13 +17,15 @@ package com.github.jcustenborder.vault.client.http;
 
 
 import com.github.jcustenborder.vault.client.VaultClient;
-import com.github.jcustenborder.vault.client.model.Auth;
-import com.github.jcustenborder.vault.client.model.Mount;
+import com.github.jcustenborder.vault.client.VaultException;
+import com.github.jcustenborder.vault.client.model.*;
 import com.google.api.client.json.Json;
 import org.junit.Assert;
 import org.junit.Test;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 
 public class HttpSysClientTest extends BaseHttpClientTest {
@@ -44,6 +46,28 @@ public class HttpSysClientTest extends BaseHttpClientTest {
     }
   }
 
+  @Test(expected = VaultException.class)
+  public void authsBadRequest() throws IOException {
+    VaultClient vaultClient = getVaultClient(400,
+        Json.MEDIA_TYPE,
+        "{\"errors\":[\"missing client token\"]}",
+        "https://127.0.0.1:8200/v1/sys/auth"
+    );
+
+    vaultClient.getSys().auths();
+  }
+
+
+  @Test(expected = VaultException.class)
+  public void mountsBadRequest() throws IOException {
+    VaultClient vaultClient = getVaultClient(400,
+        Json.MEDIA_TYPE,
+        "{\"errors\":[\"missing client token\"]}",
+        "https://127.0.0.1:8200/v1/sys/auth"
+    );
+
+    vaultClient.getSys().mounts();
+  }
   @Test
   public void mounts() throws IOException {
     VaultClient vaultClient = getVaultClient(200,
@@ -69,5 +93,81 @@ public class HttpSysClientTest extends BaseHttpClientTest {
     Assert.assertEquals("mount cubbyhole/ type does not match", "cubbyhole", mount.getType());
   }
 
+  @Test
+  public void initStatus() throws IOException{
+    VaultClient vaultClient = getVaultClient(200,
+        Json.MEDIA_TYPE,
+        "{\"initialized\":true}",
+        "https://127.0.0.1:8200/v1/sys/init"
+    );
 
+    InitStatus initStatus = vaultClient.getSys().initStatus();
+    Assert.assertNotNull(initStatus);
+    Assert.assertEquals(true, initStatus.getInitialized());
+  }
+
+  @Test(expected = VaultException.class)
+  public void initStatusBadRequest() throws IOException {
+    VaultClient vaultClient = getVaultClient(400,
+        Json.MEDIA_TYPE,
+        "{\"errors\":[\"missing client token\"]}",
+        "https://127.0.0.1:8200/v1/sys/init"
+    );
+
+    vaultClient.getSys().initStatus();
+  }
+
+  @Test
+  public void leaderStatus() throws IOException{
+    VaultClient vaultClient = getVaultClient(200,
+        Json.MEDIA_TYPE,
+        "{\"ha_enabled\":false,\"is_self\":false,\"leader_address\":\"\"}",
+        "https://127.0.0.1:8200/v1/sys/leader"
+    );
+
+    LeaderStatus leaderStatus = vaultClient.getSys().leader();
+    Assert.assertNotNull(leaderStatus);
+    Assert.assertEquals(false, leaderStatus.getHAEnabled());
+    Assert.assertEquals(false, leaderStatus.isSelf());
+    Assert.assertEquals("", leaderStatus.getLeaderAddress());
+  }
+
+  @Test(expected = VaultException.class)
+  public void leaderStatusBadRequest() throws IOException {
+    VaultClient vaultClient = getVaultClient(400,
+        Json.MEDIA_TYPE,
+        "{\"errors\":[\"missing client token\"]}",
+        "https://127.0.0.1:8200/v1/sys/leader"
+    );
+
+    vaultClient.getSys().leader();
+  }
+
+  @Test
+  public void policy() throws IOException{
+    VaultClient vaultClient = getVaultClient(200,
+        Json.MEDIA_TYPE,
+        "{\"policies\":[\"default\",\"root\"]}",
+        "https://127.0.0.1:8200/v1/sys/policy"
+    );
+
+    List<String> expectedPolicies = Arrays.asList("default", "root");
+
+    PolicyResponse policy = vaultClient.getSys().policies();
+    Assert.assertNotNull(policy);
+    Assert.assertNotNull(policy.getPolicies());
+    Assert.assertThat(expectedPolicies, org.hamcrest.CoreMatchers.is(expectedPolicies));
+  }
+
+  @Test(expected = VaultException.class)
+  public void policyBadRequest() throws IOException {
+    VaultClient vaultClient = getVaultClient(400,
+        Json.MEDIA_TYPE,
+        "{\"errors\":[\"missing client token\"]}",
+        "https://127.0.0.1:8200/v1/sys/policy"
+    );
+
+    vaultClient.getSys().policies();
+  }
+  
 }

@@ -18,23 +18,26 @@ package com.github.jcustenborder.vault.client.model;
 
 import com.google.api.client.util.Key;
 
-public class LeaderStatus {
-  @Key("ha_enabled")
-  Boolean HAEnabled;
-  @Key("is_self")
-  Boolean isSelf;
-  @Key("leader_address")
-  String leaderAddress;
+public class Policy {
 
-  public Boolean getHAEnabled() {
-    return HAEnabled;
+  @Key("name")
+  String name;
+  @Key("rules")
+  String rules;
+
+  public String getName() {
+    return name;
   }
 
-  public Boolean isSelf() {
-    return isSelf;
+  public void setName(String name) {
+    this.name = name;
   }
 
-  public String getLeaderAddress() {
-    return leaderAddress;
+  public String getRules() {
+    return rules;
+  }
+
+  public void setRules(String rules) {
+    this.rules = rules;
   }
 }

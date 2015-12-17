@@ -15,10 +15,7 @@
  */
 package com.github.jcustenborder.vault.client;
 
-import com.github.jcustenborder.vault.client.model.Auth;
-import com.github.jcustenborder.vault.client.model.LeaderStatus;
-import com.github.jcustenborder.vault.client.model.Mount;
-import com.github.jcustenborder.vault.client.model.PolicyResponse;
+import com.github.jcustenborder.vault.client.model.*;
 
 import java.io.IOException;
 import java.util.Map;
@@ -79,13 +76,13 @@ public interface SysClient {
    * Show the initialization status for this vault.
    * @return
    */
-  Object initStatus();
+  InitStatus initStatus() throws IOException;
 
   /**
    * Determine the leader status for this vault.
    * @return
    */
-  LeaderStatus leader();
+  LeaderStatus leader() throws IOException;
 
   /**
    * Create a mount at the given path.
@@ -106,14 +103,14 @@ public interface SysClient {
    * The list of policies in vault.
    * @return
    */
-  PolicyResponse policies();
+  PolicyResponse policies() throws IOException;
 
   /**
    * Get the policy by the given name.
    * @param name
    * @return
    */
-  Object readPolicy(String name);
+  Policy readPolicy(String name) throws IOException;
 
   /**
    * Create a new policy with the given name and rules.

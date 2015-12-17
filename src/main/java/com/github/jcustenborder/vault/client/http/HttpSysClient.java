@@ -22,7 +22,9 @@ import com.google.api.client.http.GenericUrl;
 import com.google.api.client.http.HttpRequest;
 import com.google.api.client.http.HttpRequestFactory;
 import com.google.api.client.http.HttpResponse;
+import com.google.api.client.repackaged.com.google.common.base.Strings;
 import com.google.api.client.util.ArrayMap;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 
 import java.io.IOException;
@@ -106,14 +108,46 @@ class HttpSysClient extends BaseHttpClient implements SysClient {
     return null;
   }
 
-  @Override
-  public Object initStatus() {
-    return null;
+  <T> T handleRequest(HttpRequest httpRequest, Class<T> dataClass) throws IOException {
+    HttpResponse httpResponse = httpRequest.execute();
+    if(httpResponse.isSuccessStatusCode()){
+      try {
+        T result;
+        if(204 == httpResponse.getStatusCode()){
+          result = dataClass.newInstance();
+        } else {
+          result = httpResponse.parseAs(dataClass);
+        }
+        return result;
+      }catch(Throwable ex){
+        throw new IOException(ex);
+      }
+    } else {
+      if (404 == httpResponse.getStatusCode()) {
+        return null;
+      } else {
+        ErrorResponse errorResponse = httpResponse.parseAs(ErrorResponse.class);
+        throw new VaultException(errorResponse.getErrors());
+      }
+    }
   }
 
   @Override
-  public LeaderStatus leader() {
-    return null;
+  public InitStatus initStatus() throws IOException {
+    List<String> pathParts = getPath("sys/init");
+    GenericUrl requestUrl = this.baseUrl.clone();
+    requestUrl.setPathParts(pathParts);
+    HttpRequest httpRequest = super.httpRequestFactory.buildGetRequest(requestUrl);
+    return handleRequest(httpRequest, InitStatus.class);
+  }
+
+  @Override
+  public LeaderStatus leader() throws IOException {
+    List<String> pathParts = getPath("sys/leader");
+    GenericUrl requestUrl = this.baseUrl.clone();
+    requestUrl.setPathParts(pathParts);
+    HttpRequest httpRequest = super.httpRequestFactory.buildGetRequest(requestUrl);
+    return handleRequest(httpRequest, LeaderStatus.class);
   }
 
   @Override
@@ -138,13 +172,23 @@ class HttpSysClient extends BaseHttpClient implements SysClient {
   }
 
   @Override
-  public PolicyResponse policies() {
-    return null;
+  public PolicyResponse policies() throws IOException {
+    List<String> pathParts = getPath("sys/policy");
+    GenericUrl requestUrl = this.baseUrl.clone();
+    requestUrl.setPathParts(pathParts);
+    HttpRequest httpRequest = super.httpRequestFactory.buildGetRequest(requestUrl);
+    return handleRequest(httpRequest, PolicyResponse.class);
   }
 
   @Override
-  public Object readPolicy(String name) {
-    return null;
+  public Policy readPolicy(String name) throws IOException {
+    Preconditions.checkArgument(!Strings.isNullOrEmpty(name), "name cannot be null.");
+    List<String> pathParts = getPath("sys/policy");
+    pathParts.add(name);
+    GenericUrl requestUrl = this.baseUrl.clone();
+    requestUrl.setPathParts(pathParts);
+    HttpRequest httpRequest = super.httpRequestFactory.buildGetRequest(requestUrl);
+    return handleRequest(httpRequest, Policy.class);
   }
 
   @Override
