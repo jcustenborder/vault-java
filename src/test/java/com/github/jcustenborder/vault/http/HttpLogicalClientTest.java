@@ -29,15 +29,19 @@ public class HttpLogicalClientTest {
 
   @Test
   public void cubbyHole() throws IOException {
-    final String path = "cubbyhole/asdfasdfas";
+    final String path = String.format("cubbyhole/%s.cubbyHole", this.getClass().getName());
     ImmutableMap<String, Object> data = ImmutableMap.of("integer", (Object)0, "string", "asdfasd", "boolean", true);
-    this.logicalClient.write(path, data);
-//    Assert.assertNotNull(writtenSecret);
+    Secret writtenSecret = this.logicalClient.write(path, data);
+    Assert.assertNotNull("write should return a secret.", writtenSecret);
     Secret readSecret = this.logicalClient.read(path);
-    Assert.assertNotNull(readSecret);
+    Assert.assertNotNull("secret should have been found.", readSecret);
+    Assert.assertTrue("delete call should have been successful.", this.logicalClient.delete(path));
+  }
 
-
-
-
+  @Test
+  public void readNotFound() throws IOException {
+    final String path = String.format("cubbyhole/%s.readNotFound", this.getClass().getName());
+    Secret readSecret = this.logicalClient.read(path);
+    Assert.assertNull("secret should not have been found.", readSecret);
   }
 }

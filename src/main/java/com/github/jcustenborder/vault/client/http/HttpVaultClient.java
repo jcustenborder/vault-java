@@ -47,6 +47,7 @@ class HttpVaultClient implements VaultClient {
               request.setNumberOfRetries(httpVaultClientSettings.getNumberOfRetries());
             }
             request.setSuppressUserAgentSuffix(true);
+            request.setThrowExceptionOnExecuteError(false);
           }
         }
     );

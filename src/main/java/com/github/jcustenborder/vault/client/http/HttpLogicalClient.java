@@ -1,6 +1,8 @@
 package com.github.jcustenborder.vault.client.http;
 
 import com.github.jcustenborder.vault.client.LogicalClient;
+import com.github.jcustenborder.vault.client.VaultException;
+import com.github.jcustenborder.vault.client.model.ErrorResponse;
 import com.github.jcustenborder.vault.client.model.Secret;
 import com.google.api.client.http.*;
 import com.google.common.collect.ImmutableList;
@@ -21,8 +23,10 @@ class HttpLogicalClient extends BaseHttpClient implements LogicalClient {
     requestUrl.setPathParts(pathParts);
     HttpRequest httpRequest = super.httpRequestFactory.buildDeleteRequest(requestUrl);
     HttpResponse response = httpRequest.execute();
-    return response.parseAs(Boolean.class);
+    return response.isSuccessStatusCode();
   }
+
+
 
   @Override
   public Secret read(String path) throws IOException {
@@ -31,7 +35,18 @@ class HttpLogicalClient extends BaseHttpClient implements LogicalClient {
     requestUrl.setPathParts(pathParts);
     HttpRequest httpRequest = super.httpRequestFactory.buildGetRequest(requestUrl);
     HttpResponse response = httpRequest.execute();
-    return response.parseAs(Secret.class);
+
+    if(response.isSuccessStatusCode()){
+      return response.parseAs(Secret.class);
+    } else {
+      if(404 == response.getStatusCode()){
+        //This happens where there is no secret.
+        return null;
+      } else {
+        ErrorResponse errorResponse = response.parseAs(ErrorResponse.class);
+        throw new VaultException(errorResponse.getErrors());
+      }
+    }
   }
 
   @Override
@@ -42,6 +57,16 @@ class HttpLogicalClient extends BaseHttpClient implements LogicalClient {
     HttpContent httpContent = getJsonHttpContent(data);
     HttpRequest httpRequest = super.httpRequestFactory.buildPutRequest(requestUrl, httpContent);
     HttpResponse response = httpRequest.execute();
-    return response.parseAs(Secret.class);
+    if(response.isSuccessStatusCode()){
+      if(204 == response.getStatusCode()){
+        //This happens where there is no lease defined.
+        return new Secret();
+      } else {
+        return response.parseAs(Secret.class);
+      }
+    } else {
+      ErrorResponse errorResponse = response.parseAs(ErrorResponse.class);
+      throw new VaultException(errorResponse.getErrors());
+    }
   }
 }
