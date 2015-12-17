@@ -41,4 +41,33 @@
       <scope>test</scope>
     </dependency>
   </dependencies>
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>com.mycila</groupId>
+        <artifactId>license-maven-plugin</artifactId>
+        <version>2.11</version>
+        <configuration>
+          <header>LICENSE</header>
+          <properties>
+            <owner>Jeremy Custenborder</owner>
+            <email>jcustenborder@gmail.com</email>
+          </properties>
+          <excludes>
+            <exclude>**/README.md</exclude>
+            <exclude>**/LICENSE</exclude>
+            <exclude>docker/**</exclude>
+            <exclude>Dockerfile</exclude>
+          </excludes>
+        </configuration>
+        <executions>
+          <execution>
+            <goals>
+              <goal>check</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
 </project>
