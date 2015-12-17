@@ -100,7 +100,7 @@ public interface SysClient {
    * List all mounts in the vault.
    * @return
    */
-  Map<String, Mount> mounts();
+  Map<String, Mount> mounts() throws IOException;
 
   /**
    * The list of policies in vault.

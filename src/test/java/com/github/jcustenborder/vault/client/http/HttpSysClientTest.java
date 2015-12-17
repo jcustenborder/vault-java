@@ -18,13 +18,8 @@ package com.github.jcustenborder.vault.client.http;
 
 import com.github.jcustenborder.vault.client.VaultClient;
 import com.github.jcustenborder.vault.client.model.Auth;
-import com.google.api.client.http.HttpTransport;
-import com.google.api.client.http.LowLevelHttpRequest;
-import com.google.api.client.http.LowLevelHttpResponse;
+import com.github.jcustenborder.vault.client.model.Mount;
 import com.google.api.client.json.Json;
-import com.google.api.client.testing.http.MockHttpTransport;
-import com.google.api.client.testing.http.MockLowLevelHttpRequest;
-import com.google.api.client.testing.http.MockLowLevelHttpResponse;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -34,23 +29,11 @@ import java.util.Map;
 public class HttpSysClientTest extends BaseHttpClientTest {
   @Test
   public void auths() throws IOException {
-    HttpTransport transport = new MockHttpTransport() {
-      @Override
-      public LowLevelHttpRequest buildRequest(String method, String url) throws IOException {
-        return new MockLowLevelHttpRequest() {
-          @Override
-          public LowLevelHttpResponse execute() throws IOException {
-            MockLowLevelHttpResponse response = new MockLowLevelHttpResponse();
-            response.setStatusCode(200);
-            response.setContentType(Json.MEDIA_TYPE);
-            response.setContent("{\"token/\":{\"description\":\"token based credentials\",\"type\":\"token\"}}");
-            return response;
-          }
-        };
-      }
-    };
-
-    VaultClient vaultClient = getVaultClient(transport);
+    VaultClient vaultClient = getVaultClient(200,
+        Json.MEDIA_TYPE,
+        "{\"token/\":{\"description\":\"token based credentials\",\"type\":\"token\"}}",
+        "https://127.0.0.1:8200/v1/sys/auth"
+    );
 
     Map<String, Auth> result = vaultClient.getSys().auths();
     Assert.assertNotNull(result);
@@ -60,4 +43,31 @@ public class HttpSysClientTest extends BaseHttpClientTest {
       Assert.assertEquals(Auth.class, entry.getValue().getClass());
     }
   }
+
+  @Test
+  public void mounts() throws IOException {
+    VaultClient vaultClient = getVaultClient(200,
+        Json.MEDIA_TYPE,
+        "{\"cubbyhole/\":{\"config\":{\"default_lease_ttl\":0,\"max_lease_ttl\":0},\"description\":\"per-token private secret storage\",\"type\":\"cubbyhole\"},\"secret/\":{\"config\":{\"default_lease_ttl\":0,\"max_lease_ttl\":0},\"description\":\"generic secret storage\",\"type\":\"generic\"},\"sys/\":{\"config\":{\"default_lease_ttl\":0,\"max_lease_ttl\":0},\"description\":\"system endpoints used for control, policy and debugging\",\"type\":\"system\"}}",
+        "https://127.0.0.1:8200/v1/sys/auth"
+    );
+
+    Map<String, Mount> result = vaultClient.getSys().mounts();
+    Assert.assertNotNull(result);
+    Assert.assertFalse(result.isEmpty());
+    for(Map.Entry<String, Mount> entry:result.entrySet()){
+      Assert.assertEquals(String.class, entry.getKey().getClass());
+      Assert.assertEquals(Mount.class, entry.getValue().getClass());
+    }
+
+    Mount mount = result.get("cubbyhole/");
+    Assert.assertNotNull("mount for cubbyhole/ was not found.", mount);
+    Assert.assertNotNull("mount config for cubbyhole/ should not be null.", mount.getConfig());
+    Assert.assertEquals("mount cubbyhole/ config.default_lease_ttl does not match", (Integer)0, mount.getConfig().getDefaultLeaseTTL());
+    Assert.assertEquals("mount cubbyhole/ config.max_lease_ttl does not match", (Integer)0, mount.getConfig().getMaxLeaseTTL());
+    Assert.assertEquals("mount cubbyhole/ description does not match", "per-token private secret storage", mount.getDescription());
+    Assert.assertEquals("mount cubbyhole/ type does not match", "cubbyhole", mount.getType());
+  }
+
+
 }

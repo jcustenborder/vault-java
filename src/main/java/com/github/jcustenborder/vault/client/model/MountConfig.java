@@ -17,7 +17,10 @@ package com.github.jcustenborder.vault.client.model;
 
 import com.google.api.client.util.Key;
 
-public class MountConfig {
+import java.math.BigDecimal;
+import java.util.Map;
+
+public class MountConfig implements SetByMap{
   @Key("default_lease_ttl")
   Integer defaultLeaseTTL;
   @Key("max_lease_ttl")
@@ -28,5 +31,13 @@ public class MountConfig {
   }
   public Integer getMaxLeaseTTL() {
     return maxLeaseTTL;
+  }
+
+  @Override
+  public void setByMap(Map<String, Object> values) {
+    BigDecimal tmp = (BigDecimal) values.get("default_lease_ttl");
+    this.defaultLeaseTTL = tmp.intValue();
+    tmp = (BigDecimal) values.get("max_lease_ttl");
+    this.maxLeaseTTL = tmp.intValue();
   }
 }

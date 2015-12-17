@@ -42,8 +42,8 @@ public class Auth implements SetByMap {
   }
 
   @Override
-  public void setByMap(Map<String, String> values) {
-    this.description = values.get("description");
-    this.type = values.get("type");
+  public void setByMap(Map<String, Object> values) {
+    this.description = (String)values.get("description");
+    this.type = (String)values.get("type");
   }
 }

@@ -40,10 +40,10 @@ class HttpSysClient extends BaseHttpClient implements SysClient {
   }
 
 
-  <T extends SetByMap> Map<String, T> setByMap(Map<String, Map<String, String>> input, Class<T> type) throws IOException {
+  <T extends SetByMap> Map<String, T> setByMap(Map<String, Map<String, Object>> input, Class<T> type) throws IOException {
     try {
       Map<String, T> output = new ArrayMap<>();
-      for (Map.Entry<String, Map<String, String>> entry : input.entrySet()) {
+      for (Map.Entry<String, Map<String, Object>> entry : input.entrySet()) {
         T value = type.newInstance();
         value.setByMap(entry.getValue());
         output.put(entry.getKey(),value);
@@ -57,13 +57,13 @@ class HttpSysClient extends BaseHttpClient implements SysClient {
 
   @Override
   public Map<String, Auth> auths() throws IOException {
-    List<String> pathParts = getPath("auth");
+    List<String> pathParts = getPath("sys/auth");
     GenericUrl requestUrl = this.baseUrl.clone();
     requestUrl.setPathParts(pathParts);
     HttpRequest httpRequest = super.httpRequestFactory.buildGetRequest(requestUrl);
     HttpResponse response = httpRequest.execute();
     if(response.isSuccessStatusCode()){
-      Map<String, Map<String, String>> tmpresponse = response.parseAs(Map.class);
+      Map<String, Map<String, Object>> tmpresponse = response.parseAs(Map.class);
       return setByMap(tmpresponse, Auth.class);
     } else {
       if(404 == response.getStatusCode()){
@@ -122,8 +122,19 @@ class HttpSysClient extends BaseHttpClient implements SysClient {
   }
 
   @Override
-  public Map<String, Mount> mounts() {
-    return null;
+  public Map<String, Mount> mounts() throws IOException {
+    List<String> pathParts = getPath("sys/auth");
+    GenericUrl requestUrl = this.baseUrl.clone();
+    requestUrl.setPathParts(pathParts);
+    HttpRequest httpRequest = super.httpRequestFactory.buildGetRequest(requestUrl);
+    HttpResponse response = httpRequest.execute();
+    if(response.isSuccessStatusCode()){
+      Map<String, Map<String, Object>> tmpresponse = response.parseAs(Map.class);
+      return setByMap(tmpresponse, Mount.class);
+    } else {
+      ErrorResponse errorResponse = response.parseAs(ErrorResponse.class);
+      throw new VaultException(errorResponse.getErrors());
+    }
   }
 
   @Override

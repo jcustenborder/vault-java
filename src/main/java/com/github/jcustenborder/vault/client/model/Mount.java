@@ -17,7 +17,9 @@ package com.github.jcustenborder.vault.client.model;
 
 import com.google.api.client.util.Key;
 
-public class Mount {
+import java.util.Map;
+
+public class Mount implements SetByMap {
   @Key("description")
   String description;
   @Key("type")
@@ -35,5 +37,15 @@ public class Mount {
 
   public String getType() {
     return type;
+  }
+
+  @Override
+  public void setByMap(Map<String, Object> values) {
+    this.description = (String)values.get("description");
+    this.type = (String)values.get("type");
+    Map<String, Object> configTemp = (Map<String, Object>) values.get("config");
+    MountConfig config = new MountConfig();
+    config.setByMap(configTemp);
+    this.config = config;
   }
 }

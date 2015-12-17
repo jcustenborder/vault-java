@@ -20,5 +20,5 @@ import java.util.Map;
 
 public interface SetByMap {
 
-  void setByMap(Map<String, String> values);
+  void setByMap(Map<String, Object> values);
 }
