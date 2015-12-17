@@ -23,7 +23,7 @@ import java.util.Map;
 
 public interface SysClient {
   /**
-   * List all audis for the vault.
+   * List all audits for the vault.
    * @return
    */
   Map<String, Object> audits();
