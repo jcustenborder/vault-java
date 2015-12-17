@@ -16,6 +16,8 @@
 package com.github.jcustenborder.vault.client.http;
 
 
+import com.google.api.client.http.HttpTransport;
+import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 
@@ -25,6 +27,9 @@ public class HttpVaultClientSettings {
   boolean requestLoggingEnabled =false;
   boolean requestCurlLoggingEnabled =false;
   Integer numberOfRetries;
+
+  HttpTransport httpTransport = new NetHttpTransport();
+
 
   public String getToken() {
     return token;

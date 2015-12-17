@@ -19,7 +19,6 @@ import com.github.jcustenborder.vault.client.LogicalClient;
 import com.github.jcustenborder.vault.client.SysClient;
 import com.github.jcustenborder.vault.client.VaultClient;
 import com.google.api.client.http.*;
-import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.JsonObjectParser;
 import com.google.api.client.json.gson.GsonFactory;
@@ -41,12 +40,12 @@ class HttpVaultClient implements VaultClient {
   private final LogicalClient logicalClient;
   private final SysClient sysClient;
 
-  public HttpVaultClient(HttpTransport httpTransport, final HttpVaultClientSettings httpVaultClientSettings){
-    Preconditions.checkNotNull(httpTransport, "httpTransport cannot be null.");
+  public HttpVaultClient(final HttpVaultClientSettings httpVaultClientSettings){
     Preconditions.checkNotNull(httpVaultClientSettings, "httpVaultClientSettings cannot be null.");
+    Preconditions.checkNotNull(httpVaultClientSettings.httpTransport, "httpVaultClientSettings.httpTransport cannot be null.");
     this.httpVaultClientSettings = httpVaultClientSettings;
     this.httpVaultClientSettings.validate();
-    this.httpTransport = httpTransport;
+    this.httpTransport = httpVaultClientSettings.httpTransport;
     this.httpHeaders = new HttpHeaders();
     this.httpHeaders.set("X-Vault-Token", this.httpVaultClientSettings.getToken());
     this.httpHeaders.setUserAgent(USER_AGENT);
@@ -77,10 +76,6 @@ class HttpVaultClient implements VaultClient {
     ImmutableList<String> basePathParts = ImmutableList.copyOf(clean);
     this.logicalClient = new HttpLogicalClient(this.httpRequestFactory, baseUrl, basePathParts);
     this.sysClient = new HttpSysClient(this.httpRequestFactory, baseUrl, basePathParts);
-  }
-
-  public HttpVaultClient(HttpVaultClientSettings httpVaultClientSettings){
-    this(new NetHttpTransport(), httpVaultClientSettings);
   }
 
   @Override
