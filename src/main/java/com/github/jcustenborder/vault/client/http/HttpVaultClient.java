@@ -1,5 +1,8 @@
-package com.github.jcustenborder.vault.client;
+package com.github.jcustenborder.vault.client.http;
 
+import com.github.jcustenborder.vault.client.LogicalClient;
+import com.github.jcustenborder.vault.client.SysClient;
+import com.github.jcustenborder.vault.client.VaultClient;
 import com.google.api.client.http.*;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.JsonFactory;
@@ -10,11 +13,11 @@ import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 
 import java.io.IOException;
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 
 class HttpVaultClient implements VaultClient {
+  private final HttpVaultClientSettings httpVaultClientSettings;
   private final HttpRequestFactory httpRequestFactory;
   private final HttpHeaders httpHeaders;
   private final HttpTransport httpTransport;
@@ -23,13 +26,14 @@ class HttpVaultClient implements VaultClient {
   private final LogicalClient logicalClient;
   private final SysClient sysClient;
 
-  public HttpVaultClient(HttpTransport httpTransport, String url, String token){
+  public HttpVaultClient(HttpTransport httpTransport, final HttpVaultClientSettings httpVaultClientSettings){
     Preconditions.checkNotNull(httpTransport, "httpTransport cannot be null.");
-    Preconditions.checkArgument(!Strings.isNullOrEmpty(url), "url cannot be null.");
-    Preconditions.checkArgument(!Strings.isNullOrEmpty(token), "token cannot be null.");
+    Preconditions.checkNotNull(httpVaultClientSettings, "httpVaultClientSettings cannot be null.");
+    this.httpVaultClientSettings = httpVaultClientSettings;
+    this.httpVaultClientSettings.validate();
     this.httpTransport = httpTransport;
     this.httpHeaders = new HttpHeaders();
-    this.httpHeaders.set("X-Vault-Token", token);
+    this.httpHeaders.set("X-Vault-Token", this.httpVaultClientSettings.getToken());
     this.httpHeaders.setUserAgent(USER_AGENT);
     this.httpRequestFactory = this.httpTransport.createRequestFactory(
         new HttpRequestInitializer() {
@@ -37,12 +41,16 @@ class HttpVaultClient implements VaultClient {
           public void initialize(HttpRequest request) throws IOException {
             request.setParser(new JsonObjectParser(jsonFactory));
             request.setHeaders(httpHeaders);
-            request.setLoggingEnabled(true);
-            request.setCurlLoggingEnabled(true);
+            request.setLoggingEnabled(httpVaultClientSettings.isRequestLoggingEnabled());
+            request.setCurlLoggingEnabled(httpVaultClientSettings.isRequestCurlLoggingEnabled());
+            if(null!=httpVaultClientSettings.getNumberOfRetries()){
+              request.setNumberOfRetries(httpVaultClientSettings.getNumberOfRetries());
+            }
+            request.setSuppressUserAgentSuffix(true);
           }
         }
     );
-    GenericUrl baseUrl = new GenericUrl(URI.create(url));
+    GenericUrl baseUrl = new GenericUrl(this.httpVaultClientSettings.getUrl());
     List<String> pathParts = baseUrl.getPathParts();
     List<String> clean = new ArrayList<>();
     for(String s:pathParts){
@@ -55,8 +63,8 @@ class HttpVaultClient implements VaultClient {
     this.sysClient = new HttpSysClient(this.httpRequestFactory, baseUrl, basePathParts);
   }
 
-  public HttpVaultClient(String url, String token){
-    this(new NetHttpTransport(), url, token);
+  public HttpVaultClient(HttpVaultClientSettings httpVaultClientSettings){
+    this(new NetHttpTransport(), httpVaultClientSettings);
   }
 
   @Override

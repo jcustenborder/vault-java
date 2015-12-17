@@ -1,4 +1,4 @@
-package com.github.jcustenborder.vault.client;
+package com.github.jcustenborder.vault.client.http;
 
 
 import com.google.api.client.http.GenericUrl;
@@ -14,7 +14,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class BaseHttpClient {
+class BaseHttpClient {
   protected final GenericUrl baseUrl;
   protected final ImmutableList<String> basePathParts;
   protected final HttpRequestFactory httpRequestFactory;

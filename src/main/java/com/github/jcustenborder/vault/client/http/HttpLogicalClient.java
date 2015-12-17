@@ -1,5 +1,6 @@
-package com.github.jcustenborder.vault.client;
+package com.github.jcustenborder.vault.client.http;
 
+import com.github.jcustenborder.vault.client.LogicalClient;
 import com.github.jcustenborder.vault.client.model.Secret;
 import com.google.api.client.http.*;
 import com.google.common.collect.ImmutableList;
@@ -9,8 +10,6 @@ import java.util.List;
 import java.util.Map;
 
 class HttpLogicalClient extends BaseHttpClient implements LogicalClient {
-
-
   public HttpLogicalClient(HttpRequestFactory httpRequestFactory, GenericUrl baseUrl, ImmutableList<String> basePathParts) {
     super(httpRequestFactory, baseUrl, basePathParts);
   }
@@ -41,7 +40,6 @@ class HttpLogicalClient extends BaseHttpClient implements LogicalClient {
     GenericUrl requestUrl = this.baseUrl.clone();
     requestUrl.setPathParts(pathParts);
     HttpContent httpContent = getJsonHttpContent(data);
-    System.out.println(requestUrl);
     HttpRequest httpRequest = super.httpRequestFactory.buildPutRequest(requestUrl, httpContent);
     HttpResponse response = httpRequest.execute();
     return response.parseAs(Secret.class);

@@ -1,9 +1,9 @@
-package com.github.jcustenborder.vault;
+package com.github.jcustenborder.vault.http;
 
 
 import com.github.jcustenborder.vault.client.LogicalClient;
 import com.github.jcustenborder.vault.client.VaultClient;
-import com.github.jcustenborder.vault.client.VaultClientFactory;
+import com.github.jcustenborder.vault.client.http.HttpVaultClientBuilder;
 import com.github.jcustenborder.vault.client.model.Secret;
 import com.google.common.collect.ImmutableMap;
 import org.junit.Assert;
@@ -18,8 +18,12 @@ public class HttpLogicalClientTest {
 
   @Before
   public void before(){
-    VaultClientFactory clientFactory = new VaultClientFactory("361ee26c-6684-d6d2-cbf5-f264f22b0f7b", "http://127.0.0.1:8200/v1/");
-    VaultClient client =  clientFactory.createVaultClient();
+    VaultClient client =  new HttpVaultClientBuilder()
+        .withToken("361ee26c-6684-d6d2-cbf5-f264f22b0f7b")
+        .withUrl("http://127.0.0.1:8200/v1/")
+        .withEnableCurlRequestLogging(true)
+        .withEnableRequestLogging(true)
+        .build();
     this.logicalClient = client.getLogical();
   }
 

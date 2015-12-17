@@ -1,5 +1,6 @@
-package com.github.jcustenborder.vault.client;
+package com.github.jcustenborder.vault.client.http;
 
+import com.github.jcustenborder.vault.client.SysClient;
 import com.github.jcustenborder.vault.client.model.LeaderStatus;
 import com.github.jcustenborder.vault.client.model.Mount;
 import com.github.jcustenborder.vault.client.model.PolicyResponse;
@@ -10,8 +11,6 @@ import com.google.common.collect.ImmutableList;
 import java.util.Map;
 
 class HttpSysClient extends BaseHttpClient implements SysClient {
-
-
   public HttpSysClient(HttpRequestFactory httpRequestFactory, GenericUrl baseUrl, ImmutableList<String> basePathParts) {
     super(httpRequestFactory, baseUrl, basePathParts);
   }
