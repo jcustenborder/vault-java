@@ -20,9 +20,13 @@ import com.github.jcustenborder.vault.client.VaultException;
 import com.github.jcustenborder.vault.client.model.ErrorResponse;
 import com.github.jcustenborder.vault.client.model.Secret;
 import com.google.api.client.http.*;
+import com.google.common.base.Preconditions;
+import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -31,9 +35,20 @@ class HttpLogicalClient extends BaseHttpClient implements LogicalClient {
     super(httpRequestFactory, baseUrl, basePathParts);
   }
 
+  protected List<String> getSecretPath(String path) {
+    Preconditions.checkArgument(!Strings.isNullOrEmpty(path), "path cannot be null.");
+    String[] secretParts = path.split("/");
+    Preconditions.checkArgument(secretParts.length>=2, "path must be in <mount>/<secret> format.");
+    List<String> pathParts = new ArrayList<>(secretParts.length + basePathParts.size());
+    pathParts.add("");
+    pathParts.addAll(this.basePathParts);
+    pathParts.addAll(Arrays.asList(secretParts));
+    return pathParts;
+  }
+
   @Override
   public Boolean delete(String path) throws IOException {
-    List<String> pathParts = getPath(path);
+    List<String> pathParts = getSecretPath(path);
     GenericUrl requestUrl = this.baseUrl.clone();
     requestUrl.setPathParts(pathParts);
     HttpRequest httpRequest = super.httpRequestFactory.buildDeleteRequest(requestUrl);
@@ -45,7 +60,7 @@ class HttpLogicalClient extends BaseHttpClient implements LogicalClient {
 
   @Override
   public Secret read(String path) throws IOException {
-    List<String> pathParts = getPath(path);
+    List<String> pathParts = getSecretPath(path);
     GenericUrl requestUrl = this.baseUrl.clone();
     requestUrl.setPathParts(pathParts);
     HttpRequest httpRequest = super.httpRequestFactory.buildGetRequest(requestUrl);
@@ -66,7 +81,7 @@ class HttpLogicalClient extends BaseHttpClient implements LogicalClient {
 
   @Override
   public Secret write(String path, Map<String, Object> data) throws IOException {
-    List<String> pathParts = getPath(path);
+    List<String> pathParts = getSecretPath(path);
     GenericUrl requestUrl = this.baseUrl.clone();
     requestUrl.setPathParts(pathParts);
     HttpContent httpContent = getJsonHttpContent(data);

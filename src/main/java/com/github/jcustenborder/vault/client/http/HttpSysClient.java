@@ -16,13 +16,17 @@
 package com.github.jcustenborder.vault.client.http;
 
 import com.github.jcustenborder.vault.client.SysClient;
-import com.github.jcustenborder.vault.client.model.LeaderStatus;
-import com.github.jcustenborder.vault.client.model.Mount;
-import com.github.jcustenborder.vault.client.model.PolicyResponse;
+import com.github.jcustenborder.vault.client.VaultException;
+import com.github.jcustenborder.vault.client.model.*;
 import com.google.api.client.http.GenericUrl;
+import com.google.api.client.http.HttpRequest;
 import com.google.api.client.http.HttpRequestFactory;
+import com.google.api.client.http.HttpResponse;
+import com.google.api.client.util.ArrayMap;
 import com.google.common.collect.ImmutableList;
 
+import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 
 class HttpSysClient extends BaseHttpClient implements SysClient {
@@ -35,9 +39,41 @@ class HttpSysClient extends BaseHttpClient implements SysClient {
     return null;
   }
 
+
+  <T extends SetByMap> Map<String, T> setByMap(Map<String, Map<String, String>> input, Class<T> type) throws IOException {
+    try {
+      Map<String, T> output = new ArrayMap<>();
+      for (Map.Entry<String, Map<String, String>> entry : input.entrySet()) {
+        T value = type.newInstance();
+        value.setByMap(entry.getValue());
+        output.put(entry.getKey(),value);
+      }
+      return output;
+    } catch(Exception ex){
+      throw new IOException("Exception thrown while building map", ex);
+    }
+  }
+
+
   @Override
-  public Map<String, Object> auths() {
-    return null;
+  public Map<String, Auth> auths() throws IOException {
+    List<String> pathParts = getPath("auth");
+    GenericUrl requestUrl = this.baseUrl.clone();
+    requestUrl.setPathParts(pathParts);
+    HttpRequest httpRequest = super.httpRequestFactory.buildGetRequest(requestUrl);
+    HttpResponse response = httpRequest.execute();
+    if(response.isSuccessStatusCode()){
+      Map<String, Map<String, String>> tmpresponse = response.parseAs(Map.class);
+      return setByMap(tmpresponse, Auth.class);
+    } else {
+      if(404 == response.getStatusCode()){
+        //This happens where there is no secret.
+        return null;
+      } else {
+        ErrorResponse errorResponse = response.parseAs(ErrorResponse.class);
+        throw new VaultException(errorResponse.getErrors());
+      }
+    }
   }
 
   @Override

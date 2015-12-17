@@ -48,7 +48,7 @@ class BaseHttpClient {
   protected List<String> getPath(String path) {
     Preconditions.checkArgument(!Strings.isNullOrEmpty(path), "path cannot be null.");
     String[] secretParts = path.split("/");
-    Preconditions.checkArgument(secretParts.length>=2, "path must be in <mount>/<secret> format.");
+    Preconditions.checkArgument(secretParts.length>=1, "path must have at least one element.");
     List<String> pathParts = new ArrayList<>(secretParts.length + basePathParts.size());
     pathParts.add("");
     pathParts.addAll(this.basePathParts);

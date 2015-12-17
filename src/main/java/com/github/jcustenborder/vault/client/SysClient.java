@@ -15,10 +15,12 @@
  */
 package com.github.jcustenborder.vault.client;
 
+import com.github.jcustenborder.vault.client.model.Auth;
 import com.github.jcustenborder.vault.client.model.LeaderStatus;
 import com.github.jcustenborder.vault.client.model.Mount;
 import com.github.jcustenborder.vault.client.model.PolicyResponse;
 
+import java.io.IOException;
 import java.util.Map;
 
 public interface SysClient {
@@ -31,7 +33,7 @@ public interface SysClient {
    * List all auths in Vault.
    * @return
    */
-  Map<String, Object> auths();
+  Map<String, Auth> auths() throws IOException;
   /**
    * Delete the policy with the given name.
    * @param name
