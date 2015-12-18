@@ -32,7 +32,7 @@ public class BaseHttpClientTest {
     HttpVaultClientSettings settings = new HttpVaultClientSettings();
     settings.setToken("asdfasdf");
     settings.setUrl("https://127.0.0.1:8200/v1/");
-    settings.httpTransport = transport;
+    settings.mockHttpTransport = transport;
     return new HttpVaultClientBuilder(settings).build();
   }
   protected VaultClient getVaultClient(final MockLowLevelHttpResponse response, final String expectedUrl){

@@ -42,10 +42,9 @@ class HttpVaultClient implements VaultClient {
 
   public HttpVaultClient(final HttpVaultClientSettings httpVaultClientSettings){
     Preconditions.checkNotNull(httpVaultClientSettings, "httpVaultClientSettings cannot be null.");
-    Preconditions.checkNotNull(httpVaultClientSettings.httpTransport, "httpVaultClientSettings.httpTransport cannot be null.");
     this.httpVaultClientSettings = httpVaultClientSettings;
     this.httpVaultClientSettings.validate();
-    this.httpTransport = httpVaultClientSettings.httpTransport;
+    this.httpTransport = httpVaultClientSettings.buildHttpTransport();
     this.httpHeaders = new HttpHeaders();
     this.httpHeaders.set("X-Vault-Token", this.httpVaultClientSettings.getToken());
     this.httpHeaders.setUserAgent(USER_AGENT);

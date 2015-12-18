@@ -19,6 +19,9 @@ import com.github.jcustenborder.vault.client.VaultClient;
 import com.github.jcustenborder.vault.client.VaultClientBuilder;
 import com.google.common.base.Preconditions;
 
+import java.net.Proxy;
+import java.security.KeyStore;
+
 public class HttpVaultClientBuilder implements VaultClientBuilder {
   final HttpVaultClientSettings httpVaultClientSettings;
 
@@ -56,6 +59,26 @@ public class HttpVaultClientBuilder implements VaultClientBuilder {
     return this;
   }
 
+  /**
+   * This allows certificate validation to be disabled during testing. This should NEVER be used in production. The default is true.
+   * Your better chance of not being lame is to add the certificate to a trust store and load it using setTrustCertificates.
+   * @param certificateValidationEnabled
+   * @return
+   */
+  public HttpVaultClientBuilder withCertificateValidationEnabled(boolean certificateValidationEnabled){
+    this.httpVaultClientSettings.setCertificateValidationEnabled(certificateValidationEnabled);
+    return this;
+  }
+
+  public HttpVaultClientBuilder withProxy(Proxy proxy){
+    this.httpVaultClientSettings.setProxy(proxy);
+    return this;
+  }
+
+  public HttpVaultClientBuilder withTrustCertificates(KeyStore trustCertificates){
+    this.httpVaultClientSettings.setTrustCertificates(trustCertificates);
+    return this;
+  }
 
   @Override
   public VaultClient build() {

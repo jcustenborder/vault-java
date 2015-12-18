@@ -21,14 +21,54 @@ import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 
+import java.net.Proxy;
+import java.security.GeneralSecurityException;
+import java.security.KeyStore;
+
 public class HttpVaultClientSettings {
   String token;
   String url;
   boolean requestLoggingEnabled =false;
   boolean requestCurlLoggingEnabled =false;
   Integer numberOfRetries;
+  boolean certificateValidationEnabled =true;
+  Proxy proxy;
+  KeyStore trustCertificates;
 
-  HttpTransport httpTransport = new NetHttpTransport();
+  HttpTransport mockHttpTransport;
+
+  HttpTransport buildHttpTransport(){
+    if(null!=this.mockHttpTransport){
+      return this.mockHttpTransport;
+    }
+
+    NetHttpTransport.Builder builder = new NetHttpTransport.Builder();
+    //TODO: This is nasty figure out what we need to do with this general exception.
+    //TODO: Log something here to really annoying if they don't use certificate validation.
+    if(!this.certificateValidationEnabled){
+      try {
+        builder.doNotValidateCertificate();
+      } catch (GeneralSecurityException e) {
+
+      }
+    }
+
+    if(null!=proxy){
+      builder.setProxy(proxy);
+    }
+
+    //TODO: This is nasty figure out what we need to do with this general exception.
+    if(null!=trustCertificates){
+      try {
+        builder.trustCertificates(trustCertificates);
+      } catch(GeneralSecurityException ex){
+
+      }
+    }
+    return builder.build();
+  }
+
+
 
 
   public String getToken() {
@@ -69,6 +109,39 @@ public class HttpVaultClientSettings {
 
   public void setNumberOfRetries(Integer numberOfRetries) {
     this.numberOfRetries = numberOfRetries;
+  }
+
+  public Proxy getProxy() {
+    return proxy;
+  }
+
+  public void setProxy(Proxy proxy) {
+    this.proxy = proxy;
+  }
+
+  public boolean isCertificateValidationEnabled() {
+    return certificateValidationEnabled;
+  }
+
+  /**
+   * This allows certificate validation to be disabled during testing. This should NEVER be used in production. The default is true.
+   * Your better chance of not being lame is to add the certificate to a trust store and load it using setTrustCertificates.
+   * @param certificateValidationEnabled
+   */
+  public void setCertificateValidationEnabled(boolean certificateValidationEnabled) {
+    this.certificateValidationEnabled = certificateValidationEnabled;
+  }
+
+  /**
+   * This method allows you to pass in a KeyStore that will be used to validate certificates in addition to the default java one.
+   * @param trustCertificates
+   */
+  public void setTrustCertificates(KeyStore trustCertificates) {
+    this.trustCertificates = trustCertificates;
+  }
+
+  public KeyStore getTrustCertificates() {
+    return trustCertificates;
   }
 
   void validate(){
